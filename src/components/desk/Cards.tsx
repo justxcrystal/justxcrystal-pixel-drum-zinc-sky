@@ -1,4 +1,4 @@
-import { BookOpen, Power, ScanSearch, SlidersHorizontal } from "lucide-react";
+import { BookOpen, MessageCircle, Power, ScanSearch, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Line, LineChart, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
@@ -74,6 +74,18 @@ export function DeskHeader() {
   const disconnectTl = useDesk((s) => s.disconnectTl);
   const [scanBusy, setScanBusy] = useState(false);
 
+  function askOpenAI() {
+    const desk = useDesk.getState();
+    const prompt = [
+      "Help me review an AMD / ICC trading setup.",
+      `Symbol: ${desk.symbol}`,
+      `Timeframe: ${desk.tf} minute`,
+      "Check accumulation, liquidity sweep, displacement, FVG, correction, and continuation.",
+      "No retest means no entry. Do not place a trade; provide analysis only.",
+    ].join("\n");
+    window.open(`https://chatgpt.com/?q=${encodeURIComponent(prompt)}`, "_blank", "noopener,noreferrer");
+  }
+
   async function bringDistribution() {
     if (scanBusy) return;
     setScanBusy(true);
@@ -122,6 +134,10 @@ export function DeskHeader() {
       >
         <ScanSearch className="size-4" />
         {scanBusy ? "Scan…" : "Scan"}
+      </Button>
+      <Button variant="muted" className="px-3.5" onClick={askOpenAI}>
+        <MessageCircle className="size-4" />
+        Ask OpenAI
       </Button>
       <Button variant="icon" size="icon" aria-label="Playbook" onClick={() => openPlaybook(true)}>
         <BookOpen className="size-4" />
