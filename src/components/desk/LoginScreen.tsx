@@ -12,8 +12,8 @@ export function ConnectPanel() {
   const error = useDesk((s) => s.loginError);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [server, setServer] = useState("GATESFX");
-  const [env, setEnv] = useState<TlEnv>("bsa");
+  const [server, setServer] = useState("ATLAS");
+  const [env, setEnv] = useState<TlEnv>("bsb");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function ConnectPanel() {
         </div>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        GatesFX defaults to server GATESFX on Broker Server A. Change these only if your TradeLocker login shows something different.
+        Choose the TradeLocker broker account you want this desk to connect to.
       </p>
       <label className="mt-4 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Email</span>
@@ -87,6 +87,28 @@ export function ConnectPanel() {
           </button>
         </div>
       </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setServer("ATLAS");
+            setEnv("bsb");
+          }}
+          className={`h-12 rounded-2xl text-sm font-semibold shadow-border ${server === "ATLAS" && env === "bsb" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg"}`}
+        >
+          ATLAS · BSB
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setServer("GATESFX");
+            setEnv("bsa");
+          }}
+          className={`h-12 rounded-2xl text-sm font-semibold shadow-border ${server === "GATESFX" && env === "bsa" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg"}`}
+        >
+          GATESFX · BSA
+        </button>
+      </div>
       <label className="mt-3 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Broker server</span>
         <Input name="server" required value={server} onChange={(e) => setServer(e.target.value)} />
@@ -94,10 +116,10 @@ export function ConnectPanel() {
       <label className="mt-3 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Environment</span>
         <select value={env} onChange={(e) => setEnv(e.target.value as TlEnv)} className="h-11 w-full rounded-xl border border-border bg-surface-2 px-3 text-sm text-fg">
-          <option value="bsa">Broker Server A (GatesFX)</option>
+          <option value="bsb">Broker Server B (ATLAS)</option>
+          <option value="bsa">Broker Server A (GATESFX)</option>
           <option value="live">Live</option>
           <option value="demo">Demo</option>
-          <option value="bsb">Broker Server B</option>
         </select>
       </label>
       {error ? (
