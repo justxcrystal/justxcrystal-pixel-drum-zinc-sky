@@ -219,11 +219,11 @@ export const loginTradeLocker = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const email = data.email.trim();
     const server = data.server.trim() || "ATLAS";
-    const order: TlEnv[] = [data.env, "demo", "live", "bsa", "bsb"].filter(
+    const order: TlEnv[] = [data.env, "bsa", "live", "demo", "bsb"].filter(
       (v, i, a) => a.indexOf(v) === i,
     ) as TlEnv[];
 
-    let lastError = `Could not sign in to ${server}.`;
+    let lastError = "Could not sign in to ATLAS.";
     let sawPassword = false;
     for (const env of order) {
       const auth = await tlRequest(env, "/auth/jwt/token", {
@@ -270,7 +270,7 @@ export const loginTradeLocker = createServerFn({ method: "POST" })
 
     return {
       ok: false as const,
-      error: sawPassword ? `Incorrect email or password for ${server}.` : lastError,
+      error: sawPassword ? "Incorrect email or password for ATLAS." : lastError,
     };
   });
 

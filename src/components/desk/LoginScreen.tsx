@@ -12,8 +12,8 @@ export function ConnectPanel() {
   const error = useDesk((s) => s.loginError);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [server, setServer] = useState("");
-  const [env, setEnv] = useState<TlEnv>("demo");
+  const [server, setServer] = useState("GATESFX");
+  const [env, setEnv] = useState<TlEnv>("bsa");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function ConnectPanel() {
         </div>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        Use the exact broker server shown on your TradeLocker sign-in screen.
+        GatesFX defaults to server GATESFX on Broker Server A. Change these only if your TradeLocker login shows something different.
       </p>
       <label className="mt-4 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Email</span>
@@ -89,14 +89,14 @@ export function ConnectPanel() {
       </div>
       <label className="mt-3 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Broker server</span>
-        <Input name="server" required placeholder="Exact server from TradeLocker" value={server} onChange={(e) => setServer(e.target.value)} />
+        <Input name="server" required value={server} onChange={(e) => setServer(e.target.value)} />
       </label>
       <label className="mt-3 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Environment</span>
         <select value={env} onChange={(e) => setEnv(e.target.value as TlEnv)} className="h-11 w-full rounded-xl border border-border bg-surface-2 px-3 text-sm text-fg">
-          <option value="demo">Demo</option>
+          <option value="bsa">Broker Server A (GatesFX)</option>
           <option value="live">Live</option>
-          <option value="bsa">Broker Server A</option>
+          <option value="demo">Demo</option>
           <option value="bsb">Broker Server B</option>
         </select>
       </label>

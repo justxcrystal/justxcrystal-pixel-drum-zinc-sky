@@ -160,14 +160,10 @@ export function DeskApp() {
     <div className="relative min-h-dvh overflow-x-hidden bg-bg text-fg">
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center"
-      >
-        <img
-          src="/griffin.png"
-          alt=""
-          className="h-[min(88vh,46rem)] w-auto max-w-[85vw] select-none opacity-[0.09]"
-        />
-      </div>
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40"
+        style={{ backgroundImage: "url('/meridian-seal-background.png')" }}
+      />
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(11,11,13,0.24),rgba(11,11,13,0.88)_82%)]" />
       <div className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-3 px-4 py-4 pb-10 md:gap-4 md:py-6 md:pb-12">
         <SessionStrip />
         <DeskHeader />
@@ -195,8 +191,8 @@ export function DeskApp() {
                 : liveLabel
                   ? `LIVE ${liveLabel}. Send to TradeLocker is ${brokerOn ? "ON" : "off"}.`
                   : tl
-                    ? `Connected to ATLAS. Loading live bars…`
-                    : "Paper desk. Connect Atlas on the right — orders only send while this screen is open."}
+                    ? `Connected to ${tl.server}. Loading live bars…`
+                    : "Paper desk. Connect TradeLocker on the right — orders only send while this screen is open."}
             </p>
             <p className="px-1 text-center text-xs leading-relaxed text-faint">
               This desk does not trade in the background. Close the tab and auto-enter stops. For 24/7, run the TradeLocker Bot Studio python.
