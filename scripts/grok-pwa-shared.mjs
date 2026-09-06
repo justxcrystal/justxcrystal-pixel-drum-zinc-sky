@@ -432,7 +432,12 @@ export function injectGrokPwaHead(html, ctx = {}) {
     host,
     documentTitle,
   );
-  let next = stripShareMetaTags(html);\n  // This standalone deployment does not load the Grok assistant/branding extension.\n  next = next.replace(/<script[^>]*grok\\.com\\/grok-app-builder\\/extensions\\.js[^>]*><\\/script>/gi, "");
+  let next = stripShareMetaTags(html);
+  // This standalone deployment does not load the Grok assistant/branding extension.
+  next = next.replace(
+    /<script[^>]*grok\.com\/grok-app-builder\/extensions\.js[^>]*><\/script>/gi,
+    "",
+  );
 
   const missing = grokPwaHeadTags(appName)
     .filter(([key]) => {
