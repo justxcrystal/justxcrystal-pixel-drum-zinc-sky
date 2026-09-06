@@ -3,8 +3,7 @@ import { Activity, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loadRememberedLogin, useDesk } from "@/lib/desk/store";
-
-const SERVER = "ATLAS";
+import type { TlEnv } from "@/lib/desk/tl-api";
 
 export function ConnectPanel() {
   const connectTl = useDesk((s) => s.connectTl);
@@ -13,25 +12,30 @@ export function ConnectPanel() {
   const error = useDesk((s) => s.loginError);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [server, setServer] = useState("");
+  const [env, setEnv] = useState<TlEnv>("demo");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const saved = loadRememberedLogin();
     if (saved?.email) setEmail(saved.email);
+    if (saved?.server) setServer(saved.server);
+    if (saved?.env) setEnv(saved.env);
   }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const em = email.trim();
-    if (!em || !password) {
-      useDesk.setState({ loginError: "Email and password. Server is ATLAS." });
+    const brokerServer = server.trim();
+    if (!em || !password || !brokerServer) {
+      useDesk.setState({ loginError: "Enter your TradeLocker email, password, and exact broker server." });
       return;
     }
     await connectTl({
       email: em,
       password,
-      server: SERVER,
-      env: "demo",
+      server: brokerServer,
+      env,
       remember: true,
     });
   }
@@ -44,11 +48,11 @@ export function ConnectPanel() {
         </div>
         <div>
           <p className="font-mono text-2xs tracking-label text-faint uppercase">Sign in on this desk</p>
-          <h2 className="text-base font-semibold leading-tight">Connect DEMO</h2>
+          <h2 className="text-base font-semibold leading-tight">Connect TradeLocker</h2>
         </div>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        Stays on this screen. Server ATLAS. Email and password from Atlas — this does not open TradeLocker.
+        Use the exact broker server shown on your TradeLocker sign-in screen.
       </p>
       <label className="mt-4 block">
         <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Email</span>
@@ -83,20 +87,29 @@ export function ConnectPanel() {
           </button>
         </div>
       </div>
-      <div className="mt-3 rounded-2xl bg-surface-2 px-4 py-3 shadow-border">
-        <p className="font-mono text-2xs tracking-label text-faint uppercase">Server</p>
-        <p className="mt-1 text-sm font-semibold tracking-wide">ATLAS</p>
-      </div>
+      <label className="mt-3 block">
+        <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Broker server</span>
+        <Input name="server" required placeholder="Exact server from TradeLocker" value={server} onChange={(e) => setServer(e.target.value)} />
+      </label>
+      <label className="mt-3 block">
+        <span className="mb-2 block font-mono text-2xs tracking-label text-faint uppercase">Environment</span>
+        <select value={env} onChange={(e) => setEnv(e.target.value as TlEnv)} className="h-11 w-full rounded-xl border border-border bg-surface-2 px-3 text-sm text-fg">
+          <option value="demo">Demo</option>
+          <option value="live">Live</option>
+          <option value="bsa">Broker Server A</option>
+          <option value="bsb">Broker Server B</option>
+        </select>
+      </label>
       {error ? (
         <p className="mt-3 text-sm leading-relaxed text-loss" role="alert">
           {error}
         </p>
       ) : null}
       <Button type="submit" className="mt-4 w-full" disabled={busy} size="lg">
-        {busy ? "Signing in…" : "Connect DEMO"}
+        {busy ? "Signing in…" : `Connect ${env.toUpperCase()}`}
       </Button>
       <Button type="button" variant="ghost" className="mt-2 w-full" onClick={() => skipToPaper()}>
-        Paper desk — no Atlas
+        Paper desk — no TradeLocker
       </Button>
     </form>
   );

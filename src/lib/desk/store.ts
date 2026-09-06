@@ -503,7 +503,7 @@ export const useDesk = create<DeskState>((set, get) => ({
   },
   connectTl: async (creds) => {
     set({ loginBusy: true, loginError: null });
-    const server = "ATLAS";
+    const server = creds.server.trim();
     try {
       const res = await loginTradeLocker({
         data: {
