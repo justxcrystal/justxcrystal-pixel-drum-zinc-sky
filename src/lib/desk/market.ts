@@ -26,6 +26,11 @@ function nyParts(now: number) {
   return { weekday, hour, minute, mins: hour * 60 + minute };
 }
 
+export function isCryptoWeekend(now = Date.now()) {
+  const { weekday } = nyParts(now);
+  return weekday === "Sat" || weekday === "Sun";
+}
+
 function clockLabel(now: number) {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: NY,
