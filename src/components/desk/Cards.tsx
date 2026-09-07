@@ -11,6 +11,7 @@ import { money, moneyCompact, pct, price, signedMoney, signedR } from "@/lib/des
 import { liveScan, paperScan, type ScanHit } from "@/lib/desk/scan";
 import {
   challengeIndexLocked,
+  cryptoTradingLocked,
   equityOf,
   isIndexSymbol,
   todayPnl,
@@ -93,7 +94,9 @@ export function DeskHeader() {
       const desk = useDesk.getState();
       const locked = challengeIndexLocked(desk);
       const rows = await liveScan({ tf: desk.tf, tl: desk.tl });
-      const tradable = locked ? rows.filter((h) => !isIndexSymbol(h.symbol)) : rows;
+      const tradable = rows.filter(
+        (h) => !(locked && isIndexSymbol(h.symbol)) && !cryptoTradingLocked(h.symbol),
+      );
       const best =
         tradable.find((h) => h.rank >= 3) ??
         tradable.find((h) => h.dist) ??
@@ -409,7 +412,8 @@ export function PositionsCard({ scenario }: { scenario: Scenario }) {
     challengeOn,
     challengeAt,
   });
-  const canTrade = !(indexLocked && isIndexSymbol(scenario.symbol));
+  const cryptoLocked = cryptoTradingLocked(scenario.symbol);
+  const canTrade = !(indexLocked && isIndexSymbol(scenario.symbol)) && !cryptoLocked;
   const replay = useDesk((s) => s.replay);
   const setupReady = replay == null || replay >= scenario.setup.retestIndex;
 
@@ -417,9 +421,11 @@ export function PositionsCard({ scenario }: { scenario: Scenario }) {
     const autoOn = armed && paperOn;
     const trendSide = withTrendSide(scenario.trend);
     const bull = scenario.trend === "bullish";
-    const status = !canTrade
-      ? `Flip $100: ${scenario.symbol} locked until the book is ${money((paperStart || 100) * 2, 0)}. Use FX, gold, or BTC.`
-      : !armed
+    const status = cryptoLocked
+      ? `${scenario.symbol} is weekend-only. Choose FX, gold, or an index on weekdays.`
+      : !canTrade
+        ? `Flip $100: ${scenario.symbol} stays locked while equity is ${money((paperStart || 100) * 2, 0)} or less.`
+        : !armed
         ? "Disarmed. Auto-enter is paused."
         : !paperOn
           ? "Live execution is off — auto-enter idle."
