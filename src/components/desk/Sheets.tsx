@@ -1,14 +1,13 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ACCOUNTS } from "@/lib/desk/accounts";
 import { getScenario, SYMBOLS, TIMEFRAMES, tfLabel } from "@/lib/desk/scenarios";
 import { downloadBlob, loadMockupScene, saveMockupScene } from "@/lib/desk/download";
 import { money, pct, signedMoney, signedR } from "@/lib/desk/format";
-import { equityOf, useDesk } from "@/lib/desk/store";
+import { equityOf, RISK_LEVELS, useDesk } from "@/lib/desk/store";
 import {
   renderTradePost,
   renderTrophyPng,
@@ -173,14 +172,29 @@ function SettingsBody() {
         </div>
       </Field>
       <Field label={`Risk ${pct(riskPct)} · ${money(equity * riskPct, 0)} / trade`}>
-        <Slider
-          min={0.25}
-          max={2}
-          step={0.25}
-          value={[riskPct * 100]}
-          onValueChange={([v]) => setRisk((v ?? 1) / 100)}
-          aria-label="Risk percent"
-        />
+        <div className="grid grid-cols-5 gap-2">
+          {RISK_LEVELS.map((level) => (
+            <button
+              key={level}
+              type="button"
+              onClick={() => setRisk(level)}
+              aria-pressed={riskPct === level}
+              className={cn(
+                "h-11 rounded-full text-xs font-semibold tabular-nums transition-colors",
+                riskPct === level
+                  ? "bg-primary text-primary-fg"
+                  : "bg-surface-2 text-muted shadow-border",
+              )}
+            >
+              {Math.round(level * 100)}%
+            </button>
+          ))}
+        </div>
+        {(riskPct === 0.1 || riskPct === 0.15) && (
+          <p className="mt-2 text-xs leading-relaxed text-loss">
+            High-risk mode can draw down the account quickly. Confirm the dollar risk above.
+          </p>
+        )}
       </Field>
       <div className="flex items-center justify-between rounded-2xl bg-surface-2 px-4 py-3 shadow-border">
         <div>

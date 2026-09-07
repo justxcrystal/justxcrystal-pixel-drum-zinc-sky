@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { ACCOUNTS, getAccount } from "./accounts";
 import { getScenario, quoteDigits, scenarioFromBars, SYMBOLS, viewScenario, withTrendSide } from "./scenarios";
 import { isSameDay } from "./format";
-import { isCashClosed } from "./market";
+import { isCashClosed, isCryptoWeekend } from "./market";
 import {
   closeTradeLockerPosition,
   fetchLiveMarket,
@@ -36,6 +36,8 @@ import { autoCloseTarget, tpIndex } from "./types";
 const KEY = "meridian-desk-v1";
 const TL_KEY = "meridian-tl-session";
 const REMEMBER_KEY = "meridian-tl-remember";
+
+export const RISK_LEVELS = [0.01, 0.02, 0.03, 0.1, 0.15] as const;
 
 const SEED_JOURNAL: JournalEntry[] = [
   {
@@ -287,10 +289,18 @@ export function isIndexSymbol(symbol: SymbolId) {
   return symbol === "US30" || symbol === "NAS100";
 }
 
+export function isCryptoSymbol(symbol: SymbolId) {
+  return symbol === "BTCUSD" || symbol === "ETHUSD";
+}
+
+export function cryptoTradingLocked(symbol: SymbolId, now = Date.now()) {
+  return isCryptoSymbol(symbol) && !isCryptoWeekend(now);
+}
+
 export function challengeIndexLocked(state: Book) {
   if (!state.challengeOn) return false;
   const start = state.paperStart && state.paperStart > 0 ? state.paperStart : 100;
-  return equityOf(state) < start * 2;
+  return equityOf(state) <= start * 2;
 }
 
 export function activeTlAccount(state: Pick<DeskState, "accountId" | "tl">): TlAccount | null {
@@ -401,6 +411,10 @@ export const useDesk = create<DeskState>((set, get) => ({
     get().tryAutoManage();
   },
   setRisk: (riskPct) => {
+    if (!(RISK_LEVELS as readonly number[]).includes(riskPct)) {
+      toast.error("Choose 1%, 2%, 3%, 10%, or 15% risk.");
+      return;
+    }
     set({ riskPct });
     scheduleSave(get());
   },
@@ -786,7 +800,11 @@ export const useDesk = create<DeskState>((set, get) => ({
     const s = get();
     if (s.position) return;
     if (challengeIndexLocked(s) && isIndexSymbol(s.symbol)) {
-      toast.error("Flip $100: no indices until you double the book. Trade FX, gold, or BTC.");
+      toast.error("Flip $100: indices stay locked while equity is $200 or less.");
+      return;
+    }
+    if (cryptoTradingLocked(s.symbol)) {
+      toast.error("Crypto entries are weekend-only (New York time).");
       return;
     }
     const scenario = currentScenario(s);
@@ -872,6 +890,7 @@ export const useDesk = create<DeskState>((set, get) => ({
     const s = get();
     if (!s.armed || !s.paperOn || s.position) return false;
     if (challengeIndexLocked(s) && isIndexSymbol(s.symbol)) return false;
+    if (cryptoTradingLocked(s.symbol)) return false;
     if (Date.now() < autoReadyAt) return false;
     const sc = currentScenario(s);
     const bar = s.replay == null ? sc.candles.length - 1 : s.replay;
@@ -1121,7 +1140,9 @@ export function hydrateDesk() {
   useDesk.setState({
     accountId,
     symbol: symbolOk ? parsed.symbol : "BTCUSD",
-    riskPct: parsed.riskPct ?? 0.02,
+    riskPct: (RISK_LEVELS as readonly number[]).includes(parsed.riskPct)
+      ? parsed.riskPct
+      : 0.01,
     armed: sessionAlive ? parsed.armed !== false : true,
     paperOn: parsed.paperOn !== false,
     candleStyle: parsed.candleStyle ?? "candles",
